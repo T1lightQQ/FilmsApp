@@ -1,9 +1,5 @@
 package com.example.filmsapp;
 
-import android.os.Bundle;
-
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -16,6 +12,7 @@ public class SearchActivity extends AppCompatActivity
 {
     private EditText etSearch;
     private Button btnFind;
+    private Button btnBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -25,19 +22,22 @@ public class SearchActivity extends AppCompatActivity
 
         etSearch = findViewById(R.id.etSearch);
         btnFind = findViewById(R.id.btnFind);
+        btnBack = findViewById(R.id.btnBack);
+
+        btnBack.setOnClickListener(v ->
+        {
+            finish();
+        });
 
         btnFind.setOnClickListener(v ->
         {
-            String text =
-                    etSearch.getText()
-                            .toString()
-                            .trim();
+            String text = etSearch.getText().toString().trim();
 
             if(text.isEmpty())
             {
                 Toast.makeText(
                         this,
-                        "Введите название фильма",
+                        "Введите название или IMDb ID",
                         Toast.LENGTH_SHORT
                 ).show();
 
@@ -50,10 +50,7 @@ public class SearchActivity extends AppCompatActivity
                             MovieInfoActivity.class
                     );
 
-            intent.putExtra(
-                    "search_text",
-                    text
-            );
+            intent.putExtra("search_text", text);
 
             startActivity(intent);
         });

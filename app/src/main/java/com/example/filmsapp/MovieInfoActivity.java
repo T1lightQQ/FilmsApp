@@ -20,151 +20,126 @@ import retrofit2.Response;
 public class MovieInfoActivity extends AppCompatActivity
 {
     private TextView tvMovieInfo;
-
     private Button btnFavorite;
+    private Button btnBack;
 
     private DBHelper dbHelper;
-
     private Movie currentMovie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_movie_info);
 
-        tvMovieInfo =
-                findViewById(
-                        R.id.tvMovieInfo
-                );
+        tvMovieInfo = findViewById(R.id.tvMovieInfo);
+        btnFavorite = findViewById(R.id.btnFavorite);
+        btnBack = findViewById(R.id.btnBack);
 
-        btnFavorite =
-                findViewById(
-                        R.id.btnFavorite
-                );
+        dbHelper = new DBHelper(this);
 
-        dbHelper =
-                new DBHelper(this);
+        String searchText = getIntent().getStringExtra("search_text");
 
-        String searchText =
-                getIntent()
-                        .getStringExtra(
-                                "search_text"
-                        );
-
-        loadMovie(searchText);
+        btnBack.setOnClickListener(v -> finish());
 
         btnFavorite.setOnClickListener(v ->
         {
-            if(currentMovie == null)
+            if(currentMovie != null)
             {
-                return;
+                dbHelper.addFavorite(
+                        currentMovie.getImdbID(),
+                        currentMovie.getTitle()
+                );
+
+                Toast.makeText(
+                        this,
+                        "Добавлено в избранное",
+                        Toast.LENGTH_SHORT
+                ).show();
             }
-
-            dbHelper.addFavorite(
-                    currentMovie.getImdbID()
-            );
-
-            Toast.makeText(
-                    this,
-                    "Добавлено в избранное",
-                    Toast.LENGTH_SHORT
-            ).show();
         });
+
+        loadMovie(searchText);
     }
 
     private void loadMovie(String text)
     {
-        OmdbApi api =
-                RetrofitClient
-                        .getClient()
-                        .create(
-                                OmdbApi.class
-                        );
+        OmdbApi api = RetrofitClient.getClient().create(OmdbApi.class);
 
         Call<Movie> call;
 
-        if(text.startsWith("tt"))
+        boolean isId = text.startsWith("tt");
+
+        if(isId)
         {
-            call =
-                    api.getMovieById(
-                            ApiConfig.API_KEY,
-                            text
-                    );
+            call = api.getMovieById(
+                    ApiConfig.API_KEY,
+                    text,
+                    "full",
+                    "json"
+            );
         }
         else
         {
-            call =
-                    api.getMovieByTitle(
-                            ApiConfig.API_KEY,
-                            text
-                    );
+            call = api.getMovieByTitle(
+                    ApiConfig.API_KEY,
+                    text,
+                    "full",
+                    "json"
+            );
         }
 
         call.enqueue(new Callback<Movie>()
         {
             @Override
-            public void onResponse(
-                    Call<Movie> call,
-                    Response<Movie> response
-            )
+            public void onResponse(Call<Movie> call, Response<Movie> response)
             {
-                if(response.body() == null)
+                if(!response.isSuccessful() || response.body() == null)
                 {
-                    Toast.makeText(
-                            MovieInfoActivity.this,
-                            "Фильм не найден",
-                            Toast.LENGTH_SHORT
-                    ).show();
-
+                    showError();
                     return;
                 }
 
-                Movie movie =
-                        response.body();
+                Movie movie = response.body();
+
+                if(movie.getResponse() == null ||
+                        movie.getResponse().equals("False"))
+                {
+                    showError();
+                    return;
+                }
 
                 currentMovie = movie;
 
                 String info =
                         "Название: " + movie.getTitle() + "\n\n" +
                                 "Год: " + movie.getYear() + "\n\n" +
-                                "Возрастной рейтинг: " + movie.getRated() + "\n\n" +
-                                "Дата выхода: " + movie.getReleased() + "\n\n" +
-                                "Продолжительность: " + movie.getRuntime() + "\n\n" +
                                 "Жанр: " + movie.getGenre() + "\n\n" +
                                 "Режиссёр: " + movie.getDirector() + "\n\n" +
-                                "Сценарий: " + movie.getWriter() + "\n\n" +
                                 "Актёры: " + movie.getActors() + "\n\n" +
-                                "Описание: " + movie.getPlot() + "\n\n" +
-                                "Язык: " + movie.getLanguage() + "\n\n" +
-                                "Страна: " + movie.getCountry() + "\n\n" +
-                                "Награды: " + movie.getAwards() + "\n\n" +
-                                "Metascore: " + movie.getMetascore() + "\n\n" +
-                                "IMDb рейтинг: " + movie.getImdbRating() + "\n\n" +
-                                "IMDb голосов: " + movie.getImdbVotes() + "\n\n" +
-                                "IMDb ID: " + movie.getImdbID() + "\n\n" +
-                                "Тип: " + movie.getType() + "\n\n" +
-                                "DVD: " + movie.getDvd() + "\n\n" +
-                                "Сборы: " + movie.getBoxOffice() + "\n\n" +
-                                "Production: " + movie.getProduction() + "\n\n" +
-                                "Website: " + movie.getWebsite();
+                                "Описание: " + movie.getPlot();
 
                 tvMovieInfo.setText(info);
             }
 
             @Override
-            public void onFailure(
-                    Call<Movie> call,
-                    Throwable t
-            )
+            public void onFailure(Call<Movie> call, Throwable t)
             {
                 Toast.makeText(
                         MovieInfoActivity.this,
-                        "Ошибка: " + t.getMessage(),
+                        t.getMessage(),
                         Toast.LENGTH_LONG
                 ).show();
             }
         });
+    }
+
+    private void showError()
+    {
+        Toast.makeText(
+                this,
+                "Фильм не найден",
+                Toast.LENGTH_SHORT
+        ).show();
     }
 }

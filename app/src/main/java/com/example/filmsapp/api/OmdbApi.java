@@ -11,12 +11,16 @@ public interface OmdbApi
     @GET("/")
     Call<Movie> getMovieByTitle(
             @Query("apikey") String apiKey,
-            @Query("t") String title
+            @Query("t") String title,
+            @Query("plot") String plot,
+            @Query("r") String responseType
     );
 
     @GET("/")
     Call<Movie> getMovieById(
             @Query("apikey") String apiKey,
-            @Query("i") String imdbId
+            @Query("i") String imdbId,
+            @Query("plot") String plot,
+            @Query("r") String responseType
     );
 }
