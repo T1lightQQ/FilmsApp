@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.example.filmsapp.models.FavoriteItem;
+
 import java.util.ArrayList;
 
 public class DBHelper extends SQLiteOpenHelper
@@ -54,9 +56,9 @@ public class DBHelper extends SQLiteOpenHelper
     }
 
 
-    public ArrayList<String> getFavorites()
+    public ArrayList<FavoriteItem> getFavorites()
     {
-        ArrayList<String> list = new ArrayList<>();
+        ArrayList<FavoriteItem> list = new ArrayList<>();
 
         SQLiteDatabase db = getReadableDatabase();
 
@@ -67,14 +69,28 @@ public class DBHelper extends SQLiteOpenHelper
 
         while(cursor.moveToNext())
         {
-            String imdbId = cursor.getString(0);
-            String title = cursor.getString(1);
-
-            list.add(title + "\n" + imdbId);
+            list.add(
+                    new FavoriteItem(
+                            cursor.getString(0),
+                            cursor.getString(1)
+                    )
+            );
         }
 
         cursor.close();
 
         return list;
+    }
+
+
+    public void deleteFavorite(String imdbId)
+    {
+        SQLiteDatabase db = getWritableDatabase();
+
+        db.delete(
+                "favorites",
+                "imdb_id=?",
+                new String[]{imdbId}
+        );
     }
 }

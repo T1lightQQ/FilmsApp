@@ -68,9 +68,7 @@ public class MovieInfoActivity extends AppCompatActivity
 
         Call<Movie> call;
 
-        boolean isId = text.startsWith("tt");
-
-        if(isId)
+        if(text.startsWith("tt"))
         {
             call = api.getMovieById(
                     ApiConfig.API_KEY,
@@ -100,24 +98,39 @@ public class MovieInfoActivity extends AppCompatActivity
                     return;
                 }
 
-                Movie movie = response.body();
+                Movie m = response.body();
 
-                if(movie.getResponse() == null ||
-                        movie.getResponse().equals("False"))
+                if(m.getResponse() == null || m.getResponse().equals("False"))
                 {
                     showError();
                     return;
                 }
 
-                currentMovie = movie;
+                currentMovie = m;
 
                 String info =
-                        "Название: " + movie.getTitle() + "\n\n" +
-                                "Год: " + movie.getYear() + "\n\n" +
-                                "Жанр: " + movie.getGenre() + "\n\n" +
-                                "Режиссёр: " + movie.getDirector() + "\n\n" +
-                                "Актёры: " + movie.getActors() + "\n\n" +
-                                "Описание: " + movie.getPlot();
+                        "Название: " + m.getTitle() + "\n\n" +
+                                "Год: " + m.getYear() + "\n" +
+                                "Возрастное ограничение: " + m.getRated() + "\n" +
+                                "Дата выхода: " + m.getReleased() + "\n" +
+                                "Длительность: " + m.getRuntime() + "\n\n" +
+                                "Жанр: " + m.getGenre() + "\n\n" +
+                                "Режиссёр: " + m.getDirector() + "\n\n" +
+                                "Сценарий: " + m.getWriter() + "\n\n" +
+                                "Актёры: " + m.getActors() + "\n\n" +
+                                "Сюжет: " + m.getPlot() + "\n\n" +
+                                "Язык: " + m.getLanguage() + "\n" +
+                                "Страна: " + m.getCountry() + "\n\n" +
+                                "Награды: " + m.getAwards() + "\n\n" +
+                                "Metascore: " + m.getMetascore() + "\n" +
+                                "IMDb рейтинг: " + m.getImdbRating() + "\n" +
+                                "IMDb голоса: " + m.getImdbVotes() + "\n\n" +
+                                "IMDb ID: " + m.getImdbID() + "\n" +
+                                "Тип: " + m.getType() + "\n\n" +
+                                "DVD: " + m.getDvd() + "\n" +
+                                "BoxOffice: " + m.getBoxOffice() + "\n" +
+                                "Production: " + m.getProduction() + "\n" +
+                                "Website: " + m.getWebsite();
 
                 tvMovieInfo.setText(info);
             }
@@ -127,7 +140,7 @@ public class MovieInfoActivity extends AppCompatActivity
             {
                 Toast.makeText(
                         MovieInfoActivity.this,
-                        t.getMessage(),
+                        "Ошибка: " + t.getMessage(),
                         Toast.LENGTH_LONG
                 ).show();
             }

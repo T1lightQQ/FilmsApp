@@ -5,10 +5,12 @@ import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.filmsapp.db.DBHelper;
+import com.example.filmsapp.models.FavoriteItem;
 
 import java.util.ArrayList;
 
@@ -18,7 +20,11 @@ public class FavoritesActivity extends AppCompatActivity
     private Button btnBack;
 
     private DBHelper dbHelper;
-    private ArrayList<String> titles;
+
+    private ArrayList<FavoriteItem> list;
+    private ArrayList<String> displayList;
+
+    private ArrayAdapter<String> adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -31,33 +37,57 @@ public class FavoritesActivity extends AppCompatActivity
 
         dbHelper = new DBHelper(this);
 
-        titles = dbHelper.getFavorites();
+        list = dbHelper.getFavorites();
 
-        ArrayAdapter<String> adapter =
-                new ArrayAdapter<>(
-                        this,
-                        android.R.layout.simple_list_item_1,
-                        titles
-                );
+
+        displayList = new ArrayList<>();
+
+        for(FavoriteItem item : list)
+        {
+            displayList.add(item.title + "\n" + item.imdbId);
+        }
+
+        adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_list_item_1,
+                displayList
+        );
 
         listFavorites.setAdapter(adapter);
 
 
         listFavorites.setOnItemClickListener((parent, view, position, id) ->
         {
-            String item = titles.get(position);
+            FavoriteItem item = list.get(position);
 
-            String imdbId = item.split("\n")[1];
+            Intent intent = new Intent(
+                    FavoritesActivity.this,
+                    MovieInfoActivity.class
+            );
 
-            Intent intent =
-                    new Intent(
-                            FavoritesActivity.this,
-                            MovieInfoActivity.class
-                    );
-
-            intent.putExtra("search_text", imdbId);
+            intent.putExtra("search_text", item.imdbId);
 
             startActivity(intent);
+        });
+
+
+        listFavorites.setOnItemLongClickListener((parent, view, position, id) ->
+        {
+            FavoriteItem item = list.get(position);
+
+            dbHelper.deleteFavorite(item.imdbId);
+
+            list.remove(position);
+            displayList.remove(position);
+            adapter.notifyDataSetChanged();
+
+            Toast.makeText(
+                    this,
+                    "Удалено из избранного",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return true;
         });
 
 
